@@ -3,10 +3,10 @@ kakao:
     key: test_kakao_api_key
 spring:
   datasource:
-    #  url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    #  username: sa
-    #  password:
-    #  driver-class-name: org.h2.Driver
+#    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+#    username: sa
+#    password:
+#    driver-class-name: org.h2.Driver
     hikari:
       maximum-pool-size: 5
       minimum-idle: 0          # 테스트 종료 시 불필요한 커넥션 풀링 방지
