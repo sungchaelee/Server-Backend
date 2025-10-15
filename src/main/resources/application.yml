@@ -5,7 +5,7 @@ spring:
     name: livelihoodCoupon
   profiles:
     active: dev
-    include: local # 항상 local 프로파일 포함
+    #include: local # 항상 local 프로파일 포함
   jpa:
     show-sql: false
     properties:

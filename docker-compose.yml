@@ -1,5 +1,8 @@
 services:
   collector-app:
+    image: ${DOCKER_IMAGE:-}
+    env_file:
+      - .env   # docker-compose.yml과 같은 디렉토리에 .env 파일 있어야 함
     depends_on:
       postgres:
         condition: service_healthy
@@ -13,8 +16,11 @@ services:
     ports:
       - "8080:8080"
     environment:
+      - POSTGRES_DB_URL=${POSTGRES_DB_URL}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - TZ=Asia/Seoul
-      - SPRING_PROFILES_ACTIVE=local
+      - SPRING_PROFILES_ACTIVE=dev
       - KAKAO_API_KEY=${KAKAO_API_KEY}
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
@@ -31,7 +37,6 @@ services:
       - ./logs:/app/logs
     networks:
       - livelihoodCoupon-net
-
 
 networks:
   livelihoodCoupon-net:

@@ -8,6 +8,11 @@ services:
     volumes:
       - ./data:/data
     command: osrm-routed --algorithm mld /data/south-korea-latest.car.osrm
+    # 컨테이너 RAM 제한
+    deploy:
+      resources:
+        limits:
+          memory: 16G
     environment:
       - TZ=Asia/Seoul
     networks:
@@ -23,6 +28,11 @@ services:
     volumes:
       - ./data:/data
     command: osrm-routed --algorithm mld /data/south-korea-latest.foot.osrm
+    # 컨테이너 RAM 제한
+    deploy:
+      resources:
+        limits:
+          memory: 16G
     environment:
       - TZ=Asia/Seoul
     networks:
@@ -38,6 +48,11 @@ services:
     volumes:
       - ./data:/data
     command: osrm-routed --algorithm mld /data/south-korea-latest.bike.osrm
+    # 컨테이너 RAM 제한
+    deploy:
+      resources:
+        limits:
+          memory: 16G
     environment:
       - TZ=Asia/Seoul
     networks:

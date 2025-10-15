@@ -3,27 +3,27 @@ kakao:
     key: ${KAKAO_API_KEY}
 spring:
   datasource:
-    url: jdbc:postgresql://postgres:5432/livelihoodCoupon_db?sslmode=disable&connectTimeout=10&options=-c TimeZone%3DAsia/Seoul
+    url: ${POSTGRES_DB_URL}
     driver-class-name: org.postgresql.Driver
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT}
   batch:
     jdbc:
       initialize-schema: always # 배치 테이블 자동 생성
   jpa:
-    properties:
-      hibernate:
-        show_sql: true
-        format_sql: true
-        ddl-auto: update
-        spatial:
-          dialect: org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect
-          geometry_factory: org.hibernate.spatial.integration.jts.JTSGeometryFactory
+    hibernate:
+      ddl-auto: update
 batch:
   csv:
     file:
       path: data/csv
     incremental-path: data/new-csv/
 cors:
-  allowed-origins: http://localhost:8081
+  allowed-origins: ${CORS_URL}
 
 logging:
   level:
