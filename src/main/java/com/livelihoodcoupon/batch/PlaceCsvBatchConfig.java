@@ -83,6 +83,8 @@ public class PlaceCsvBatchConfig {
 		MultiResourceItemReader<PlaceCsvDto> reader = new MultiResourceItemReader<>();
 		try {
 			Resource[] resources = resourcePatternResolver.getResources("file:" + csvFilePath + "/*.csv");
+			log.info("Resolved CSV path: {}", csvFilePath);
+			log.info("Number of CSV resources found: {}", resources.length);
 			reader.setResources(resources);
 		} catch (IOException e) {
 			log.error("CSV 리소스 경로에서 파일을 로드하는 중 오류 발생: {}", csvFilePath, e);

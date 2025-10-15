@@ -11,6 +11,7 @@ public interface ParkingLotWithDistance {
     String getRoadAddress();
     String getLotAddress();
     String getParkingChargeInfo();
-    Point getLocation();
+    Double getLat();
+    Double getLng();
     Double getDistance();
 }

@@ -35,8 +35,8 @@ public class ParkingLotNearbyResponse {
                 .roadAddress(projection.getRoadAddress())
                 .lotAddress(projection.getLotAddress())
                 .feeInfo(projection.getParkingChargeInfo())
-                .lat(projection.getLocation() != null ? projection.getLocation().getY() : null)
-                .lng(projection.getLocation() != null ? projection.getLocation().getX() : null)
+                .lat(projection.getLat())
+                .lng(projection.getLng())
                 .distance(projection.getDistance())
                 .build();
     }

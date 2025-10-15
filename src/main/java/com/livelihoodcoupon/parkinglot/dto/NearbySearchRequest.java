@@ -17,8 +17,7 @@ public class NearbySearchRequest {
     @Range(min = -180, max = 180)
     private Double lng;
 
-    // 반경(meter), 기본값 1000m (1km)
-    private Integer radius = 500;
+    private Double radius = 1.0;
 
     private Integer page = 1;
     private Integer size =  10;

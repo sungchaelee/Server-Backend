@@ -66,6 +66,8 @@ public class ElasticsearchBatchController {
 		try {
 			log.info("CSV to ES 단계적 전체 재구성 배치 작업 시작 요청됨");
 			Resource[] resources = resourcePatternResolver.getResources("file:" + csvFilePath + "/*.csv");
+			log.info("Resolved csvFilePath in controller: {}", csvFilePath);
+			log.info("Number of resources found by controller: {}", resources.length);
 			startStagedBatchJobAsync(placeCsvToEsJob, "placeCsvToEsJob", Arrays.asList(resources));
 			return ResponseEntity.ok(
 				CustomApiResponse.success("CSV to ES 단계적 전체 재구성 배치 작업이 백그라운드에서 시작되었습니다.")

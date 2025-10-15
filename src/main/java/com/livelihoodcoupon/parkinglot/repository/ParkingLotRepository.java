@@ -18,21 +18,23 @@ import org.springframework.data.domain.Pageable;
 
 public interface ParkingLotRepository extends JpaRepository<ParkingLot, Long> {
 
-	@Query(nativeQuery = true,
-		value = "SELECT *, ST_Distance(location, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography) as distance " +
-			"FROM parking_lot " +
-			"WHERE ST_DWithin(location, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography, :radius) " +
-			"ORDER BY distance ASC",
-		countQuery = "SELECT count(*) FROM parking_lot " +
-			"WHERE ST_DWithin(location, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography, :radius)")
+	    @Query(nativeQuery = true,
+
+	        value = "SELECT id, parking_lot_nm as parkingLotNm, road_address as roadAddress, lot_address as lotAddress, " +
+	            "parking_charge_info as parkingChargeInfo, ST_Y(location::geometry) as lat, ST_X(location::geometry) as lng, " +
+	            "ST_Distance(location, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography) as distance " +
+	            "FROM parking_lot " +
+	            "WHERE ST_DWithin(location, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography, :radius) " +
+	            "ORDER BY distance ASC",
+	        countQuery = "SELECT count(*) FROM parking_lot " +
+	            "WHERE ST_DWithin(location, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography, :radius)")
 	Page<ParkingLotWithDistance> findNearbyParkingLots(
 		@Param("lat") double lat,
 		@Param("lng") double lng,
-		@Param("radius") int radius,
-		Pageable pageable
+		        @Param("radius") double radius,		Pageable pageable
 	);
 
-	    Optional<ParkingLot> findByParkingLotId(Long id);
+	
 	// 1) 백필 대상: location IS NULL 이고 주소가 하나라도 있는 행 상위 N개
 	interface ToGeocode {
 		Long getId();

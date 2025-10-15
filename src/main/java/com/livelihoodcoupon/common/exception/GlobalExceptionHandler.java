@@ -39,29 +39,44 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     // @Valid 또는 @Validated 에 의한 유효성 검사 실패 시 발생
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    protected ResponseEntity<CustomApiResponse<?>> handleMethodArgumentNotValidException(
-        MethodArgumentNotValidException e) {
-        log.error("MethodArgumentNotValidException: {}", e.getMessage(), e);
-        // 첫 번째 에러 메시지를 가져와서 사용
-        String errorMessage = e.getBindingResult().getFieldErrors().stream()
-            .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+        MethodArgumentNotValidException ex,
+        HttpHeaders headers,
+        HttpStatusCode status,
+        WebRequest request) {
+
+        log.error("MethodArgumentNotValidException: {}", ex.getMessage(), ex);
+
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+            .map(fe -> fe.getField() + ": " + (fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "invalid"))
             .findFirst()
             .orElse(ErrorCode.INVALID_INPUT_VALUE.getMessage());
 
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(CustomApiResponse.error(ErrorCode.INVALID_INPUT_VALUE, errorMessage));
+        CustomApiResponse<?> body = CustomApiResponse.error(
+            ErrorCode.INVALID_INPUT_VALUE, errorMessage);
+
+        return handleExceptionInternal(ex, body, headers, HttpStatus.BAD_REQUEST, request);
     }
 
     // @RequestParam 필수 파라미터 누락 시 발생
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    protected ResponseEntity<CustomApiResponse<?>> handleMissingServletRequestParameterException(
-        MissingServletRequestParameterException e) {
-        log.error("MissingServletRequestParameterException: {}", e.getMessage(), e);
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(CustomApiResponse.error(ErrorCode.INVALID_REQUEST_PARAM, e.getMessage()));
+    @Override
+    protected ResponseEntity<Object> handleMissingServletRequestParameter(
+        MissingServletRequestParameterException ex,
+        HttpHeaders headers,
+        HttpStatusCode status,
+        WebRequest request) {
+
+        log.error("MissingServletRequestParameterException: {}", ex.getMessage(), ex);
+
+        // 팀 공통 에러 바디 유지
+        CustomApiResponse<?> body = CustomApiResponse.error(
+            ErrorCode.INVALID_REQUEST_PARAM,
+            "필수 파라미터 누락: " + ex.getParameterName()
+        );
+
+        // 항상 일관 포맷으로 반환
+        return handleExceptionInternal(ex, body, headers, HttpStatus.BAD_REQUEST, request);
     }
 
     // @RequestParam 등에서 타입 불일치 시 발생

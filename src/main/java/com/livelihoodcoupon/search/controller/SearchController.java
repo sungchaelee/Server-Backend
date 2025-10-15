@@ -1,20 +1,10 @@
 package com.livelihoodcoupon.search.controller;
 
-import java.io.IOException;
-import java.util.List;
-
-import jakarta.validation.Valid;
-
-import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.livelihoodcoupon.common.config.SearchProperties;
 import com.livelihoodcoupon.common.response.CustomApiResponse;
+import com.livelihoodcoupon.parkinglot.dto.NearbySearchRequest;
+import com.livelihoodcoupon.parkinglot.dto.ParkingLotNearbyResponse;
+import com.livelihoodcoupon.parkinglot.service.ParkingLotService;
 import com.livelihoodcoupon.search.dto.AutocompleteDto;
 import com.livelihoodcoupon.search.dto.AutocompleteResponseDto;
 import com.livelihoodcoupon.search.dto.PageResponse;
@@ -24,9 +14,19 @@ import com.livelihoodcoupon.search.dto.SearchResponseDto;
 import com.livelihoodcoupon.search.dto.SearchServiceResult;
 import com.livelihoodcoupon.search.service.ElasticService;
 import com.livelihoodcoupon.search.service.SearchService;
-
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -36,6 +36,7 @@ public class SearchController {
 
 	private final SearchService search;
 	private final ElasticService elasticService;
+	private final ParkingLotService parkingLotService;
 	private final SearchProperties searchProperties;
 
 	/**
@@ -102,5 +103,28 @@ public class SearchController {
 		return ResponseEntity.ok().body(CustomApiResponse.success(list));
 	}
 
-}
+		/**
+		* 텍스트 쿼리 또는 좌표를 기반으로 주변 주차장을 검색
+		*/
+	@GetMapping("/search/parkinglots")
+	public ResponseEntity<CustomApiResponse<PageResponse<ParkingLotNearbyResponse>>> searchNearbyParkingLots(
+		@Valid @ModelAttribute SearchRequestDto request) {
 
+		PageResponse<ParkingLotNearbyResponse> response = parkingLotService.searchByQueryOrCoord(request);
+		return ResponseEntity.ok().body(CustomApiResponse.success(response));
+	}
+
+    /**
+     * 장소 검색 후, 해당 위치 기반으로 주변 주차장을 검색합니다.
+     * 1. 엘라스틱서치로 장소의 중심 좌표를 찾습니다.
+     * 2. 찾은 좌표를 기준으로 1km 반경 내의 주차장을 데이터베이스에서 검색합니다.
+     */
+    @GetMapping("/searches/parkinglots")
+    public ResponseEntity<CustomApiResponse<PageResponse<ParkingLotNearbyResponse>>> searchParkingLotsNearPlace(
+        @Valid @ModelAttribute SearchRequestDto request) throws IOException {
+
+        PageResponse<ParkingLotNearbyResponse> response = elasticService.searchParkingLotsNearPlace(request);
+        return ResponseEntity.ok().body(CustomApiResponse.success(response));
+    }
+
+}

@@ -1,3 +1,4 @@
+
 package com.livelihoodcoupon.search.service;
 
 import java.io.IOException;
@@ -17,9 +18,13 @@ import com.livelihoodcoupon.common.dto.Coordinate;
 import com.livelihoodcoupon.common.exception.BusinessException;
 import com.livelihoodcoupon.common.exception.ErrorCode;
 import com.livelihoodcoupon.common.service.KakaoApiService;
+import com.livelihoodcoupon.parkinglot.dto.NearbySearchRequest;
+import com.livelihoodcoupon.parkinglot.dto.ParkingLotNearbyResponse;
+import com.livelihoodcoupon.parkinglot.service.ParkingLotService;
 import com.livelihoodcoupon.search.dto.AnalyzedAddress;
 import com.livelihoodcoupon.search.dto.AutocompleteDto;
 import com.livelihoodcoupon.search.dto.AutocompleteResponseDto;
+import com.livelihoodcoupon.search.dto.PageResponse;
 import com.livelihoodcoupon.search.dto.PlaceSearchResponseDto;
 import com.livelihoodcoupon.search.dto.SearchRequestDto;
 import com.livelihoodcoupon.search.dto.SearchServiceResult;
@@ -43,15 +48,18 @@ public class ElasticService {
 	private final KakaoApiService kakaoApiService;
 	private final AnalyzerTest analyzerTest;
 	private final RedisService redisService;
+	private final ParkingLotService parkingLotService;
 	private final Komoran komoran = new Komoran(DEFAULT_MODEL.FULL);
 
 	public ElasticService(ElasticPlaceService elasticPlaceService, SearchService searchService,
-		KakaoApiService kakaoApiService, AnalyzerTest analyzerTest, RedisService redisService) {
+		KakaoApiService kakaoApiService, AnalyzerTest analyzerTest, RedisService redisService,
+		ParkingLotService parkingLotService) {
 		this.elasticPlaceService = elasticPlaceService;
 		this.searchService = searchService;
 		this.kakaoApiService = kakaoApiService;
 		this.analyzerTest = analyzerTest;
 		this.redisService = redisService;
+		this.parkingLotService = parkingLotService;
 	}
 
 	/**
@@ -162,6 +170,31 @@ public class ElasticService {
 
 		Page<PlaceSearchResponseDto> page = new PageImpl<>(dtoPage, pageable, resultTotalHits);
 		return new SearchServiceResult(page, searchLat, searchLng);
+	}
+
+	/**
+	 * 장소 검색 후, 해당 위치 기반으로 주변 주차장을 검색하는 2단계 로직을 수행합니다.
+	 * @param request
+	 * @return PageResponse<ParkingLotNearbyResponse>
+	 * @throws IOException
+	 */
+	public PageResponse<ParkingLotNearbyResponse> searchParkingLotsNearPlace(SearchRequestDto request) throws IOException {
+		// 1. 엘라스틱서치를 호출하여 사용자의 쿼리에 대한 중심 좌표를 찾습니다.
+		// 이 호출에서는 실제 장소 목록은 필요 없으므로, 페이지 크기를 1로 지정하여 최소한의 데이터만 가져옵니다.
+		SearchServiceResult placeSearchResult = this.elasticSearch(request, 1, 1);
+		double centerLat = placeSearchResult.getSearchCenterLat();
+		double centerLng = placeSearchResult.getSearchCenterLng();
+
+		// 2. 주차장 검색 서비스에 사용할 요청 객체를 준비합니다.
+		NearbySearchRequest parkingRequest = new NearbySearchRequest();
+		parkingRequest.setLat(centerLat);
+		parkingRequest.setLng(centerLng);
+		parkingRequest.setRadius(1.0); // 1km 반경
+		parkingRequest.setPage(request.getPage()); // 원본 요청의 페이지 번호 사용
+		parkingRequest.setSize(10); // 기본 페이지 크기
+
+		// 3. parkingLotService를 호출하여 좌표 기반으로 주변 주차장을 검색합니다.
+		return parkingLotService.findNearby(parkingRequest);
 	}
 
 	/**
@@ -279,3 +312,4 @@ public class ElasticService {
 	}
 
 }
+

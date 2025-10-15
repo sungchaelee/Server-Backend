@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/parking-lots")
+@RequestMapping("/api/parkinglots")
 @RequiredArgsConstructor
 public class ParkingLotController {
 
