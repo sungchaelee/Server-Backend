@@ -9,8 +9,22 @@ spring:
     jdbc:
       initialize-schema: always # 배치 테이블 자동 생성
   jpa:
-    hibernate:
-      ddl-auto: update
-
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        ddl-auto: update
+        spatial:
+          dialect: org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect
+          geometry_factory: org.hibernate.spatial.integration.jts.JTSGeometryFactory
+batch:
+  csv:
+    file:
+      path: data/csv
+    incremental-path: data/new-csv/
 cors:
   allowed-origins: http://localhost:8081
+
+logging:
+  level:
+    org.hibernate.type.descriptor.sql: trace
