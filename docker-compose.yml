@@ -24,7 +24,7 @@ services:
       - OSRM_FOOT_URL=http://osrm-foot:5000
       - OSRM_BIKE_URL=http://osrm-bike:5000
       - SPRING_BATCH_JOB_ENABLED=false                 # 배치 자동실행 OFF
-      - BATCH_CSV_FILE_PATH=/app/data/place            # Place 멀티 CSV 디렉토리
+      - BATCH_CSV_FILE_PATH=/app/data/csv            # 소비쿠폰 CSV 디렉토리
       - BATCH_PARKING_CSV_FILE=/app/data/parkinglotcsv/전국주차장정보표준데이터.csv  # Parking 단일 CSV 파일
     volumes:
       - ./data:/app/data
