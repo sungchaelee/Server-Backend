@@ -16,10 +16,18 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.mockito.ArgumentCaptor;
+import java.util.Collections;
 
 import com.livelihoodcoupon.common.dto.Coordinate;
 import com.livelihoodcoupon.common.service.KakaoApiService;
+import com.livelihoodcoupon.parkinglot.dto.NearbySearchRequest;
+import com.livelihoodcoupon.parkinglot.dto.ParkingLotNearbyResponse;
+import com.livelihoodcoupon.parkinglot.service.ParkingLotService;
+import com.livelihoodcoupon.search.dto.PageResponse;
 import com.livelihoodcoupon.search.dto.AnalyzedAddress;
 import com.livelihoodcoupon.search.dto.PlaceSearchResponseDto;
 import com.livelihoodcoupon.search.dto.SearchRequestDto;
@@ -62,12 +70,14 @@ class ElasticServiceTest {
 	private AnalyzerTest analyzerTest;
 	@Mock
 	private ElasticsearchClient client;
+	@Mock
+	private ParkingLotService parkingLotService;
 
 	@BeforeEach
 	void setUp() {
 		MockitoAnnotations.openMocks(this);
 		elasticService = new ElasticService(elasticPlaceService, searchService, kakaoApiService,
-			analyzerTest, redisService);
+			analyzerTest, redisService, parkingLotService);
 	}
 
 	@Test
@@ -230,5 +240,41 @@ class ElasticServiceTest {
 
 		// Then
 		assertEquals("address", result);
+	}
+
+	@Test
+	@DisplayName("장소 기반 주변 주차장 검색 성공")
+	void searchParkingLotsNearPlace_success() throws IOException {
+		// given
+		ElasticService spyElasticService = spy(elasticService);
+
+		SearchRequestDto request = new SearchRequestDto();
+		request.setQuery("강남역");
+
+		// 1. elasticSearch 모의 결과 설정
+		double centerLat = 37.4979;
+		double centerLng = 127.0276;
+		Page<PlaceSearchResponseDto> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 1), 0);
+		SearchServiceResult mockPlaceSearchResult = new SearchServiceResult(emptyPage, centerLat, centerLng);
+
+		doReturn(mockPlaceSearchResult).when(spyElasticService).elasticSearch(any(SearchRequestDto.class), eq(1), eq(1));
+
+		// 2. parkingLotService.findNearby 모의 결과 설정
+		PageResponse<ParkingLotNearbyResponse> mockParkingLotResponse = new PageResponse<>(new PageImpl<>(Collections.emptyList()), 10, centerLat, centerLng);
+		when(parkingLotService.findNearby(any(NearbySearchRequest.class))).thenReturn(mockParkingLotResponse);
+
+		// when
+		spyElasticService.searchParkingLotsNearPlace(request);
+
+		// then
+		// elasticSearch가 호출되었는지 검증
+		verify(spyElasticService, times(1)).elasticSearch(request, 1, 1);
+
+		// parkingLotService.findNearby가 올바른 좌표로 호출되었는지 검증
+		ArgumentCaptor<NearbySearchRequest> captor = ArgumentCaptor.forClass(NearbySearchRequest.class);
+		verify(parkingLotService, times(1)).findNearby(captor.capture());
+		NearbySearchRequest capturedRequest = captor.getValue();
+		assertThat(capturedRequest.getLat()).isEqualTo(centerLat);
+		assertThat(capturedRequest.getLng()).isEqualTo(centerLng);
 	}
 }

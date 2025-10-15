@@ -43,7 +43,7 @@ class ParkingLotControllerTest {
         NearbySearchRequest request = new NearbySearchRequest();
         request.setLat(37.5665);
         request.setLng(126.9780);
-        request.setRadius(1000);
+        request.setRadius(1.0);
         request.setPage(1);
         request.setSize(10);
 
@@ -58,13 +58,13 @@ class ParkingLotControllerTest {
 
         PageRequest pageRequest = PageRequest.of(0, 10);
         PageImpl<ParkingLotNearbyResponse> page = new PageImpl<>(Collections.singletonList(responseItem), pageRequest, 1);
-        PageResponse<ParkingLotNearbyResponse> pageResponse = new PageResponse<>(page, 10);
+        PageResponse<ParkingLotNearbyResponse> pageResponse = new PageResponse<>(page, 10, request.getLat(), request.getLng());
 
 
         given(parkingLotService.findNearby(any(NearbySearchRequest.class))).willReturn(pageResponse);
 
         // when & then
-        mockMvc.perform(get("/api/parking-lots/nearby")
+        mockMvc.perform(get("/api/parkinglots/nearby")
                         .param("lat", "37.5665")
                         .param("lng", "126.9780")
                         .param("radius", "1000")
@@ -88,7 +88,7 @@ class ParkingLotControllerTest {
         given(parkingLotService.getParkingLotDetails(parkingLotId)).willReturn(detailResponse);
 
         // when & then
-        mockMvc.perform(get("/api/parking-lots/{id}", parkingLotId)
+        mockMvc.perform(get("/api/parkinglots/{id}", parkingLotId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -99,7 +99,7 @@ class ParkingLotControllerTest {
     @DisplayName("주변 주차장 검색 시 위도값이 없을 때 실패")
     void getNearbyParkingLots_fail_without_lat() throws Exception {
         // when & then
-        mockMvc.perform(get("/api/parking-lots/nearby")
+        mockMvc.perform(get("/api/parkinglots/nearby")
                         .param("lng", "126.9780")
                         .param("radius", "1000")
                         .contentType(MediaType.APPLICATION_JSON))
